@@ -1,0 +1,60 @@
+version: '3.8'
+
+networks:
+  app-net:
+  db-net:
+
+volumes:
+  db-data:
+
+services:
+
+  db:
+    image: postgres:15
+    container_name: films-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: filmdb
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+    volumes:
+      - db-data:/var/lib/postgresql/data
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - db-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user -d filmdb"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build: ./backend
+    container_name: films-backend
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_NAME: filmdb
+      DB_USER: user
+      DB_PASS: password
+      PORT: 3000
+    networks:
+      - app-net
+      - db-net
+
+  frontend:
+    build: ./frontend
+    container_name: films-frontend
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    networks:
+      - app-net
