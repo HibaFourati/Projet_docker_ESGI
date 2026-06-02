@@ -80,7 +80,6 @@
 
   <script>
     const API = 'http://localhost:3000';
-
     async function chargerFilms() {
       const res = await fetch(`${API}/films`);
       const films = await res.json();
