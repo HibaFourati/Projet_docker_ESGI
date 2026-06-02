@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>🎬 Film & Série Rater</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: sans-serif; background: #0f0f1a; color: #f0f0f0; padding: 2rem; }
+    h1 { text-align: center; font-size: 2rem; margin-bottom: 2rem; color: #e2b714; }
+    .form-card {
+      background: #1a1a2e; border-radius: 12px; padding: 1.5rem;
+      max-width: 600px; margin: 0 auto 2rem;
+    }
+    .form-card h2 { margin-bottom: 1rem; font-size: 1.1rem; color: #aaa; }
+    .form-row { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; }
+    input, select, textarea {
+      flex: 1; padding: 10px; border-radius: 8px;
+      border: 1px solid #333; background: #0f0f1a;
+      color: #f0f0f0; font-size: 14px; min-width: 120px;
+    }
+    textarea { width: 100%; resize: vertical; min-height: 70px; }
+    button.submit {
+      width: 100%; padding: 12px; background: #e2b714; color: #0f0f1a;
+      border: none; border-radius: 8px; font-size: 15px;
+      font-weight: bold; cursor: pointer; margin-top: 10px;
+    }
+    button.submit:hover { background: #f0c830; }
+    .films-grid {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 1rem; max-width: 1100px; margin: 0 auto;
+    }
+    .film-card {
+      background: #1a1a2e; border-radius: 12px; padding: 1.2rem;
+      border-left: 4px solid #e2b714;
+    }
+    .film-card h3 { font-size: 1rem; margin-bottom: 4px; }
+    .badges { display: flex; gap: 6px; margin: 6px 0; flex-wrap: wrap; }
+    .badge {
+      font-size: 11px; padding: 2px 8px; border-radius: 20px;
+      background: #2a2a3e; color: #aaa;
+    }
+    .note { font-size: 1.6rem; font-weight: bold; color: #e2b714; margin: 8px 0 4px; }
+    .avis { font-size: 13px; color: #aaa; font-style: italic; }
+    .btn-delete {
+      margin-top: 10px; padding: 6px 12px; background: transparent;
+      border: 1px solid #c0392b; color: #c0392b; border-radius: 6px;
+      cursor: pointer; font-size: 12px;
+    }
+    .btn-delete:hover { background: #c0392b; color: white; }
+    .empty { text-align: center; color: #555; margin-top: 3rem; font-size: 1.1rem; }
+  </style>
+</head>
+<body>
+
+  <h1>🎬 Film & Série Rater</h1>
+
+  <!-- Formulaire d'ajout -->
+  <div class="form-card">
+    <h2>Ajouter un film ou une série</h2>
+    <div class="form-row">
+      <input type="text" id="titre" placeholder="Titre *" required />
+      <select id="type">
+        <option value="film">Film</option>
+        <option value="série">Série</option>
+        <option value="documentaire">Documentaire</option>
+      </select>
+    </div>
+    <div class="form-row">
+      <input type="text" id="genre" placeholder="Genre (Action, Drame…)" />
+      <input type="number" id="note" placeholder="Note /10" min="0" max="10" />
+    </div>
+    <textarea id="avis" placeholder="Ton avis (optionnel)…"></textarea>
+    <button class="submit" onclick="ajouterFilm()">＋ Ajouter</button>
+  </div>
+
+  <!-- Liste des films -->
+  <div class="films-grid" id="liste"></div>
+  <p class="empty" id="empty" style="display:none">Aucun film ajouté pour l'instant.</p>
+
+  <script>
+    const API = 'http://localhost:3000';
+
+    async function chargerFilms() {
+      const res = await fetch(`${API}/films`);
+      const films = await res.json();
+      const liste = document.getElementById('liste');
+      const empty = document.getElementById('empty');
+      liste.innerHTML = '';
+      if (films.length === 0) { empty.style.display = 'block'; return; }
+      empty.style.display = 'none';
+      films.forEach(f => {
+        liste.innerHTML += `
+          <div class="film-card">
+            <h3>${f.titre}</h3>
+            <div class="badges">
+              <span class="badge">${f.type}</span>
+              ${f.genre ? `<span class="badge">${f.genre}</span>` : ''}
+            </div>
+            <div class="note">${f.note !== null ? f.note + '/10' : '—'}</div>
+            ${f.avis ? `<div class="avis">"${f.avis}"</div>` : ''}
+            <button class="btn-delete" onclick="supprimerFilm(${f.id})">🗑 Supprimer</button>
+          </div>`;
+      });
+    }
+
+    async function ajouterFilm() {
+      const titre = document.getElementById('titre').value.trim();
+      if (!titre) { alert('Le titre est obligatoire !'); return; }
+      await fetch(`${API}/films`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          titre,
+          type: document.getElementById('type').value,
+          genre: document.getElementById('genre').value,
+          note: parseInt(document.getElementById('note').value) || null,
+          avis: document.getElementById('avis').value
+        })
+      });
+      document.getElementById('titre').value = '';
+      document.getElementById('genre').value = '';
+      document.getElementById('note').value = '';
+      document.getElementById('avis').value = '';
+      chargerFilms();
+    }
+
+    async function supprimerFilm(id) {
+      if (!confirm('Supprimer ce film ?')) return;
+      await fetch(`${API}/films/${id}`, { method: 'DELETE' });
+      chargerFilms();
+    }
+
+    chargerFilms();
+  </script>
+
+</body>
+</html>
