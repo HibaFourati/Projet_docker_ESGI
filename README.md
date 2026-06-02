@@ -1,19 +1,8 @@
 # 🎬 Film & Série Rater
 
-Application multi-tiers conteneurisée avec Docker permettant de noter des films et séries.
-
-## Architecture
-- **Frontend** : HTML/CSS/JS (Nginx)
-- **Backend** : Node.js / Express (API REST)
-- **Base de données** : PostgreSQL
-
-## Lancement rapide
-```bash
-docker-compose up --build
-```
-Accès : http://localhost
+Application multi-tiers conteneurisée avec Docker permettant de noter 
+et gérer une collection de films et séries.
 
 ## Membres du groupe
-- Prénom Nom
-- Prénom Nom
-- Prénom Nom
+- Hiba Fourati
+- Fatou Thiam 
